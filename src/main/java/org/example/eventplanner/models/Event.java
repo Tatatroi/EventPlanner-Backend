@@ -24,7 +24,7 @@ public class Event {
     private LocalDateTime end_time;
 
     // Relație cu Location (N:1)
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_location")
     private Location location;
 

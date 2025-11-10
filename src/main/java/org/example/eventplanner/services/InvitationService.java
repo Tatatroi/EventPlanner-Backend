@@ -14,15 +14,15 @@ public class InvitationService {
         this.invitationRepository = invitationRepository;
     }
 
-    public List<Invitation> findAll() {
+    public List<Invitation> getAllInvitations() {
         return invitationRepository.findAll();
     }
 
-    public Invitation findById(Long id) {
+    public Invitation getInvitationById(Long id) {
         return invitationRepository.findById(id).orElse(null);
     }
 
-    public Invitation save(Invitation invitation) {
+    public Invitation createInvitation(Invitation invitation) {
         return invitationRepository.save(invitation);
     }
 
@@ -38,7 +38,7 @@ public class InvitationService {
                 .orElseThrow(() -> new RuntimeException("Invitation not found with id " + id));
     }
 
-    public void deleteById(Long id) {
+    public void deleteInvitation(Long id) {
         invitationRepository.deleteById(id);
     }
 }
