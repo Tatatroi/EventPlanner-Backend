@@ -21,7 +21,7 @@ public class EventUserService {
         return eventUserRepository.findAll();
     }
 
-    public Optional<EventUser> getEventUserById(Long eventId, Long userId) {
+    public Optional<EventUser> getEventUserByIds(Long eventId, Long userId) {
         EventUserId id = new EventUserId(eventId, userId);
         return eventUserRepository.findById(id);
     }
