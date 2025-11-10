@@ -1,5 +1,6 @@
 package org.example.eventplanner.controllers;
 
+import lombok.RequiredArgsConstructor;
 import org.example.eventplanner.models.Location;
 import org.example.eventplanner.services.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +10,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/locations")
+@RequiredArgsConstructor
 public class LocationController {
 
-    @Autowired
-    private LocationService locationService;
+    private final LocationService locationService;
 
     @GetMapping
     public List<Location> getAllLocations() {
