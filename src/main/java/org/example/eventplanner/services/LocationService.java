@@ -15,15 +15,15 @@ public class LocationService {
         this.locationRepository = locationRepository;
     }
 
-    public List<Location> findAll() {
+    public List<Location> getAllLocations() {
         return locationRepository.findAll();
     }
 
-    public Location findById(Long id) {
+    public Location getLocationById(Long id) {
         return locationRepository.findById(id).orElse(null);
     }
 
-    public Location save(Location location) {
+    public Location createLocation(Location location) {
         return locationRepository.save(location);
     }
 
@@ -39,7 +39,7 @@ public class LocationService {
                 .orElseThrow(() -> new RuntimeException("Location not found with id " + id));
     }
 
-    public void deleteById(Long id) {
+    public void deleteLocation(Long id) {
         locationRepository.deleteById(id);
     }
 
