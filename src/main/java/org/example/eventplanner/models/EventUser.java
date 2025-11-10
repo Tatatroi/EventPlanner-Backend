@@ -15,11 +15,11 @@ public class EventUser {
     @Id
     private Long id_event;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_user", insertable = false, updatable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_event", insertable = false, updatable = false)
     private Event event;
 

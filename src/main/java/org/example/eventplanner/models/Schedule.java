@@ -25,7 +25,7 @@ public class Schedule {
     @Column(nullable = false)
     private LocalDateTime end_time;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_event")
     private Event event;
 }

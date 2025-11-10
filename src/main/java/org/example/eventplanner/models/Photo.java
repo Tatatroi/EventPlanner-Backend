@@ -13,11 +13,11 @@ public class Photo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_photo;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_event")
     private Event event;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_user")
     private User user;
 
