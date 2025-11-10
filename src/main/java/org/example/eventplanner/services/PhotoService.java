@@ -14,15 +14,15 @@ public class PhotoService {
         this.photoRepository = photoRepository;
     }
 
-    public List<Photo> findAll() {
+    public List<Photo> getAllPhotos() {
         return photoRepository.findAll();
     }
 
-    public Photo findById(Long id) {
+    public Photo getPhotoById(Long id) {
         return photoRepository.findById(id).orElse(null);
     }
 
-    public Photo save(Photo photo) {
+    public Photo createPhoto(Photo photo) {
         return photoRepository.save(photo);
     }
 
@@ -38,7 +38,7 @@ public class PhotoService {
                 .orElseThrow(() -> new RuntimeException("Photo not found with id " + id));
     }
 
-    public void deleteById(Long id) {
+    public void deletePhoto(Long id) {
         photoRepository.deleteById(id);
     }
 }
