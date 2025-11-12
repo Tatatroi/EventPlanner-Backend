@@ -26,8 +26,15 @@ public class EventUserService {
         return eventUserRepository.findById(id);
     }
 
-    public EventUser addEventUser(EventUser eventUser) {
-        return eventUserRepository.save(eventUser);
+    public EventUser addEventUser(Long userId, Long eventId) {
+        EventUser savedEventUser = new EventUser();
+        savedEventUser.setId_user(userId);
+        savedEventUser.setId_event(eventId);
+        savedEventUser.setRole("attendee");
+        savedEventUser.setInvitation_status("pending");
+        savedEventUser.setConfirmed(false);
+
+        return eventUserRepository.save(savedEventUser);
     }
 
     public EventUser updateEventUser(Long userId, Long eventId, EventUser updatedEventUser) {

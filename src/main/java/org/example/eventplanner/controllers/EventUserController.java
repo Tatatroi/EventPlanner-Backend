@@ -27,8 +27,8 @@ public class EventUserController {
     }
 
     @PostMapping
-    public EventUser enrollUserToEvent(@RequestBody EventUser eventUser) {
-        return eventUserService.addEventUser(eventUser);
+    public EventUser enrollUserToEvent(@RequestParam Long eventId, @RequestParam Long userId) {
+        return eventUserService.addEventUser(eventId, userId);
     }
 
     @PutMapping("/{eventId}/{userId}")
