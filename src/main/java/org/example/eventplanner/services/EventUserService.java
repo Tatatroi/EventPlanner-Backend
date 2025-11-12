@@ -46,4 +46,12 @@ public class EventUserService {
         EventUserId id = new EventUserId(userId, eventId);
         eventUserRepository.deleteById(id);
     }
+
+    public List<EventUser> getAllUsersByEventId(Long eventId) {
+        return eventUserRepository.findByid_event(eventId);
+    }
+
+    public List<EventUser> getAllEventsByUserId(Long userId) {
+        return eventUserRepository.findByid_user(userId);
+    }
 }

@@ -27,7 +27,7 @@ public class EventUserController {
     }
 
     @PostMapping
-    public EventUser createEventUser(@RequestBody EventUser eventUser) {
+    public EventUser enrollUserToEvent(@RequestBody EventUser eventUser) {
         return eventUserService.addEventUser(eventUser);
     }
 
@@ -37,8 +37,18 @@ public class EventUserController {
     }
 
     @DeleteMapping("/{eventId}/{userId}")
-    public void deleteEventUser(@PathVariable Long eventId, @PathVariable Long userId) {
+    public void deleteUserFromEvent(@PathVariable Long eventId, @PathVariable Long userId) {
         eventUserService.deleteEventUser(userId, eventId);
+    }
+
+    @GetMapping("/event/{eventId}")
+    public List<EventUser> getUsersByEventId(@PathVariable Long eventId) {
+        return eventUserService.getAllUsersByEventId(eventId);
+    }
+
+    @GetMapping("/user/{userId}")
+    public List<EventUser> getEventsByUserId(@PathVariable Long userId) {
+        return eventUserService.getAllEventsByUserId(userId);
     }
 
 }
