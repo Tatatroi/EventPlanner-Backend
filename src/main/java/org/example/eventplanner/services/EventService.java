@@ -1,7 +1,9 @@
 package org.example.eventplanner.services;
 
 import org.example.eventplanner.models.Event;
+import org.example.eventplanner.models.EventUser;
 import org.example.eventplanner.repositories.EventRepository;
+import org.example.eventplanner.repositories.EventUserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,7 +13,10 @@ public class EventService {
 
     private final EventRepository eventRepository;
 
-    public EventService(EventRepository eventRepository) {
+    private final EventUserRepository eventUserRepository;
+
+    public EventService(EventRepository eventRepository, EventUserRepository eventUserRepository) {
+        this.eventUserRepository = eventUserRepository;
         this.eventRepository = eventRepository;
     }
 
@@ -23,8 +28,19 @@ public class EventService {
         return eventRepository.findById(id).orElse(null);
     }
 
-    public Event createEvent(Event event) {
-        return eventRepository.save(event);
+    public Event createEvent(Event event, Long userId) {
+
+        Event saved = eventRepository.save(event);
+
+        EventUser eventUser = new EventUser();
+        eventUser.setId_user(userId);
+        eventUser.setId_event(event.getId_event());
+        eventUser.setRole("Organizer");
+        eventUser.setInvitation_status("Accepted");
+        eventUser.setConfirmed(true);
+        eventUserRepository.save(eventUser);
+
+        return saved;
     }
 
     public Event updateEvent(Long id, Event updatedEvent) {

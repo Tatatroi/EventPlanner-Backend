@@ -15,8 +15,8 @@ public class EventController {
     private final EventService eventService;
 
     @PostMapping
-    public Event createEvent(@RequestBody Event event) {
-        return eventService.createEvent(event);
+    public Event createEvent(@RequestBody Event event, @RequestParam Long userId) {
+        return eventService.createEvent(event, userId );
     }
 
     @GetMapping("/{id}")
