@@ -20,6 +20,7 @@ public class EventUserController {
         return eventUserService.getAllEventUsers();
     }
 
+
     @GetMapping("/{eventId}/{userId}")
     public Optional<EventUser> getEventUser(@PathVariable Long eventId, @PathVariable Long userId) {
         return eventUserService.getEventUserByIds(eventId, userId);
