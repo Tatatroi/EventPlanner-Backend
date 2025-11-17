@@ -3,6 +3,7 @@ package org.example.eventplanner.controllers;
 import lombok.RequiredArgsConstructor;
 import org.example.eventplanner.models.EventUser;
 import org.example.eventplanner.services.EventUserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,6 +50,12 @@ public class EventUserController {
     @GetMapping("/user/{userId}")
     public List<EventUser> getEventsByUserId(@PathVariable Long userId) {
         return eventUserService.getAllEventsByUserId(userId);
+    }
+
+    @PostMapping("/invite")
+    public ResponseEntity<String> inviteUsers(@RequestParam Long idEvent, @RequestBody List<String> emails){
+        eventUserService.inviteUsersToEvent(idEvent, emails);
+        return ResponseEntity.ok("Invitations sent successfully.");
     }
 
 }

@@ -30,4 +30,5 @@ public class EventUser {
 
     @Column(nullable = false)
     private String invitation_status; // pending / accepted / declined
+
 }
