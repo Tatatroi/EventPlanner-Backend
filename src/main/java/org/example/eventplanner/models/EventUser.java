@@ -1,5 +1,6 @@
 package org.example.eventplanner.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -10,17 +11,20 @@ import lombok.Data;
 public class EventUser {
 
     @Id
-    private Long id_user;
+    @Column(name = "id_user")
+    private Long idUser;
 
     @Id
-    private Long id_event;
+    @Column(name = "id_event")
+    private Long idEvent;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "id_user", insertable = false, updatable = false)
     private User user;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "id_event", insertable = false, updatable = false)
+    @JsonIgnore
     private Event event;
 
     @Column(nullable = false)
@@ -30,4 +34,8 @@ public class EventUser {
 
     @Column(nullable = false)
     private String invitation_status; // pending / accepted / declined
+
+    public void setStatus(String status) {
+        this.invitation_status = status;
+    }
 }

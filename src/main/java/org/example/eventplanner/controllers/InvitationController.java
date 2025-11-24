@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.eventplanner.models.Invitation;
 import org.example.eventplanner.services.InvitationService;
 import org.example.eventplanner.services.LocationService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +31,18 @@ public class InvitationController {
         return invitationService.createInvitation(invitation);
     }
 
+    @GetMapping("/accept")
+    public ResponseEntity<String> accept(@RequestParam Long eventId, @RequestParam Long userId) {
+        invitationService.acceptInvitation(eventId, userId);
+        return ResponseEntity.ok("Invitation accepted.");
+    }
+
+    @GetMapping("/decline")
+    public ResponseEntity<String> decline(@RequestParam Long eventId, @RequestParam Long userId) {
+        invitationService.declineInvitation(eventId, userId);
+        return ResponseEntity.ok("Invitation declined.");
+    }
+
     @PutMapping("/{id}")
     public Invitation updateInvitation(@PathVariable Long id, @RequestBody Invitation updatedInvitation) {
         return invitationService.updateInvitation(id, updatedInvitation);
@@ -37,6 +50,6 @@ public class InvitationController {
 
     @DeleteMapping("/{id}")
     public void deleteInvitation(@PathVariable Long id) {
-        invitationService.deleteInvitation(id);
+            invitationService.deleteInvitation(id);
     }
 }

@@ -5,6 +5,7 @@ import org.example.eventplanner.dto.LogInRequest;
 import org.example.eventplanner.dto.RegisterRequest;
 import org.example.eventplanner.models.User;
 import org.example.eventplanner.repositories.UserRepository;
+import org.example.eventplanner.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +13,12 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     public AuthResponse register(RegisterRequest registerRequest) {
@@ -31,18 +34,29 @@ public class AuthService {
 
         User saved = userRepository.save(user);
 
-        return new AuthResponse(saved.getId_user(), saved.getEmail(), "Registered successfully");
+        String token = jwtUtil.generateJwtToken(saved);
 
+        return new AuthResponse(
+                token,
+                saved.getIdUser(),
+                saved.getEmail()
+        );
     }
+
 
     public AuthResponse login(LogInRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail());
-//                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        return new AuthResponse(user.getId_user(), user.getEmail(), "Login successful");
+        String token = jwtUtil.generateJwtToken(user);
+
+        return new AuthResponse(
+                token,
+                user.getIdUser(),
+                user.getEmail());
+
     }
 }
