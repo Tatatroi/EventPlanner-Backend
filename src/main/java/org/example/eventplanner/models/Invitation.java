@@ -11,7 +11,7 @@ public class Invitation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_invitation;
+    private Long idInvitation;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_event", nullable = false)

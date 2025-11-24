@@ -33,8 +33,8 @@ public class EventService {
         Event saved = eventRepository.save(event);
 
         EventUser eventUser = new EventUser();
-        eventUser.setId_user(userId);
-        eventUser.setId_event(event.getId_event());
+        eventUser.setIdUser(userId);
+        eventUser.setIdEvent(event.getIdEvent());
         eventUser.setRole("Organizer");
         eventUser.setInvitation_status("Accepted");
         eventUser.setConfirmed(true);

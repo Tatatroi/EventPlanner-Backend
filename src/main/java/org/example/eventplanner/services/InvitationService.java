@@ -1,6 +1,8 @@
 package org.example.eventplanner.services;
 
+import org.example.eventplanner.models.EventUser;
 import org.example.eventplanner.models.Invitation;
+import org.example.eventplanner.repositories.EventUserRepository;
 import org.example.eventplanner.repositories.InvitationRepository;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +12,10 @@ import java.util.List;
 public class InvitationService {
     private final InvitationRepository invitationRepository;
 
-    public InvitationService(InvitationRepository invitationRepository) {
+    private final EventUserRepository eventUserRepository;
+
+    public InvitationService(InvitationRepository invitationRepository, EventUserRepository eventUserRepository) {
+        this.eventUserRepository = eventUserRepository;
         this.invitationRepository = invitationRepository;
     }
 
@@ -40,5 +45,19 @@ public class InvitationService {
 
     public void deleteInvitation(Long id) {
         invitationRepository.deleteById(id);
+    }
+
+    public void acceptInvitation(Long eventId, Long userId) {
+        EventUser eu = eventUserRepository.findByIdUserAndIdEvent(userId, eventId)
+                .orElseThrow(() -> new RuntimeException("Invitation not found"));
+        eu.setStatus("accepted");
+        eventUserRepository.save(eu);
+    }
+
+    public void declineInvitation(Long eventId, Long userId) {
+        EventUser eu = eventUserRepository.findByIdUserAndIdEvent(userId, eventId)
+                .orElseThrow(() -> new RuntimeException("Invitation not found"));
+        eu.setStatus("declined");
+        eventUserRepository.save(eu);
     }
 }

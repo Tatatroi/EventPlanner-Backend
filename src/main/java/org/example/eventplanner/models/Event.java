@@ -12,7 +12,7 @@ public class Event {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_event;
+    private Long idEvent;
 
     @Column(nullable = false)
     private String name;
