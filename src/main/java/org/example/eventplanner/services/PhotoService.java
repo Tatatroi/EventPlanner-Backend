@@ -1,18 +1,24 @@
 package org.example.eventplanner.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.eventplanner.models.Photo;
+import org.example.eventplanner.services.FileStorageService;
 import org.example.eventplanner.repositories.PhotoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
+@RequiredArgsConstructor
 public class PhotoService {
+
+    private final FileStorageService fileStorageService;
     private final PhotoRepository photoRepository;
 
-    public PhotoService(PhotoRepository photoRepository) {
-        this.photoRepository = photoRepository;
-    }
 
     public List<Photo> getAllPhotos() {
         return photoRepository.findAll();
@@ -39,6 +45,16 @@ public class PhotoService {
     }
 
     public void deletePhoto(Long id) {
-        photoRepository.deleteById(id);
+        Photo photo = photoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Photo not found with id: " + id));
+
+        try {
+            fileStorageService.deleteFile(photo.getFile_path());
+        } catch (Exception e){
+            System.out.println("Failed to delete file: " + photo.getFile_path());
+        }
+
+        photoRepository.delete(photo);
+
     }
 }
