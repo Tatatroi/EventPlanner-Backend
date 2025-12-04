@@ -10,9 +10,11 @@ import java.util.Optional;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final EventUserService eventUserService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, EventUserService eventUserService) {
         this.userRepository = userRepository;
+        this.eventUserService = eventUserService;
     }
 
     public List<User> getAllUsers() {
@@ -48,6 +50,15 @@ public class UserService {
         if (user == null || !user.getPassword().equals(password)) {
             throw new RuntimeException("Invalid email or password");
         }
+    }
+
+    public User getUserByEmail(String email){
+        User user = userRepository.findByEmail(email);
+        if (user == null){
+            throw new RuntimeException("User does not exist");
+        }
+
+        return user;
     }
 
 }

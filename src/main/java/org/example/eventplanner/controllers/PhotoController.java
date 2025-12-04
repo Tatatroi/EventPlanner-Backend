@@ -5,12 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.example.eventplanner.dto.PhotoDto;
 import org.example.eventplanner.mappers.PhotoMapper;
 import org.example.eventplanner.models.Event;
+import org.example.eventplanner.models.EventUser;
 import org.example.eventplanner.models.Photo;
 import org.example.eventplanner.models.User;
 import org.example.eventplanner.repositories.EventRepository;
 import org.example.eventplanner.repositories.UserRepository;
 import org.example.eventplanner.services.FileStorageService;
 import org.example.eventplanner.services.PhotoService;
+import org.example.eventplanner.services.UserService;
+import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,6 +34,7 @@ public class PhotoController {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<PhotoDto>> getAllPhotos() {
@@ -57,8 +61,34 @@ public class PhotoController {
     }
 
     @DeleteMapping("/{id}")
-    public void deletePhoto(@PathVariable Long id) {
-        photoService.deletePhoto(id);
+    public ResponseEntity<?> deletePhoto(@PathVariable Long id, Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            User currentUser = userService.getUserByEmail(username);
+
+            Photo photo = photoService.getPhotoById(id);
+            if (photo == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            boolean isUploader = photo.getUser().getIdUser().equals(currentUser.getIdUser());
+            boolean isOrganizer = photo.getEvent().getEventUsers().stream()
+                    .anyMatch(eventUser -> eventUser.getIdUser().equals(currentUser.getIdUser())
+                            && "Organizer".equalsIgnoreCase(eventUser.getRole()));
+
+            if (!isUploader && !isOrganizer) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You don't have permission to delete this photo");
+            }
+
+            photoService.deletePhoto(id);
+            return ResponseEntity.noContent().build();
+
+
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body("Error deleting photo: " + e.getMessage());
+        }
+
+
     }
 
     @PostMapping("/upload")
@@ -70,8 +100,10 @@ public class PhotoController {
         try {
             String filePath = fileStorageService.storeFile(file);
             String username = authentication.getName();
-            User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = userRepository.findByEmail(username);
+            if (user == null){
+                throw new RuntimeException("User not found");
+            }
             Event event = eventRepository.findById(eventId)
                     .orElseThrow(() -> new RuntimeException("Event not found"));
 
