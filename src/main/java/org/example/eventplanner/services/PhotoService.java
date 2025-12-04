@@ -57,4 +57,8 @@ public class PhotoService {
         photoRepository.delete(photo);
 
     }
+
+    public List<Photo> getPhotosByEventId(Long eventId) {
+        return photoRepository.findByEvent_IdEvent(eventId);
+    }
 }

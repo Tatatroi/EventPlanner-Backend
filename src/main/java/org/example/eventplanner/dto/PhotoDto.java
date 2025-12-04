@@ -11,4 +11,5 @@ public class PhotoDto {
     private String userName;
     private String filePath;
     private LocalDateTime uploadTime;
+    private String fileUrl;
 }

@@ -14,6 +14,8 @@ import org.example.eventplanner.services.FileStorageService;
 import org.example.eventplanner.services.PhotoService;
 import org.example.eventplanner.services.UserService;
 import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -91,6 +93,23 @@ public class PhotoController {
 
     }
 
+    @GetMapping("/files/{photoId}")
+    public ResponseEntity<Resource> getPhotoFile(@PathVariable Long photoId) {
+        try {
+            Photo photo = photoService.getPhotoById(photoId);
+            if (photo == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Resource resource = fileStorageService.loadFileAsResource(photo.getFile_path());
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping("/upload")
     public ResponseEntity<?> uploadPhoto(
             @RequestParam("file") MultipartFile file,
@@ -115,8 +134,23 @@ public class PhotoController {
 
             Photo savedPhoto = photoService.createPhoto(photo);
             PhotoDto photoDto = PhotoMapper.toDto(savedPhoto);
+            photoDto.setFileUrl("/api/photos/files/" + savedPhoto.getIdPhoto());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(photoDto);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/event/{eventId}")
+    public ResponseEntity<List<PhotoDto>> getPhotosByEvent(@PathVariable Long eventId) {
+        try {
+            List<PhotoDto> photos = photoService.getPhotosByEventId(eventId)
+                    .stream()
+                    .map(PhotoMapper::toDto)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(photos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }

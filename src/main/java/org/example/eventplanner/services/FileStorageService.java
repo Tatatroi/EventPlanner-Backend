@@ -3,10 +3,13 @@ package org.example.eventplanner.services;
 import org.apache.commons.io.FilenameUtils;
 import org.example.eventplanner.config.FileStorageConfig;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -61,5 +64,21 @@ public class FileStorageService {
     public void deleteFile(String filename) throws IOException {
         Path filePath = this.fileStorageLocation.resolve(filename).normalize();
         Files.deleteIfExists(filePath);
+    }
+
+    public Resource loadFileAsResource(String filePath) {
+
+        try {
+            Path file = this.fileStorageLocation.resolve(filePath).normalize();
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("File not found");
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("File not found " + filePath, e);
+        }
     }
 }
