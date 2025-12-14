@@ -19,10 +19,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,35 +65,58 @@ public class PhotoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePhoto(@PathVariable Long id, Authentication authentication) {
-        try {
-            String username = authentication.getName();
-            User currentUser = userService.getUserByEmail(username);
+    public ResponseEntity<?> deletePhoto(@PathVariable Long id, @RequestParam Long userId) {
+        System.out.println("DELETE photoId = " + id + ", userId = " + userId);
 
+        try {
             Photo photo = photoService.getPhotoById(id);
             if (photo == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            boolean isUploader = photo.getUser().getIdUser().equals(currentUser.getIdUser());
-            boolean isOrganizer = photo.getEvent().getEventUsers().stream()
-                    .anyMatch(eventUser -> eventUser.getIdUser().equals(currentUser.getIdUser())
-                            && "Organizer".equalsIgnoreCase(eventUser.getRole()));
+            // Get data BEFORE any modifications
+            Long uploaderId = photo.getUser().getIdUser();
+            Event event = photo.getEvent();
+
+            boolean isUploader = uploaderId.equals(userId);
+            boolean isOrganizer = event.getEventUsers().stream()
+                    .anyMatch(eventUser ->
+                            eventUser.getUser().getIdUser().equals(userId) &&
+                                    "Organizer".equalsIgnoreCase(eventUser.getRole())
+                    );
 
             if (!isUploader && !isOrganizer) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You don't have permission to delete this photo");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You don't have permission to delete this photo");
             }
 
-            photoService.deletePhoto(id);
+            // Store file path before deletion
+            String filePath = photo.getFile_path();
+
+            // Delete from database first
+            try {
+                photoService.deletePhoto(id);
+            } catch (Exception e){
+                return ResponseEntity.badRequest().body("Error comes from service");
+            }
+
+            // Then delete physical file
+            try {
+                fileStorageService.deleteFile(filePath);
+            } catch (Exception fileEx) {
+                System.err.println("Warning: Could not delete file: " + fileEx.getMessage());
+            }
+
             return ResponseEntity.noContent().build();
 
-
-        } catch (Exception e){
-            return ResponseEntity.badRequest().body("Error deleting photo: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errorMessage = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            return ResponseEntity.badRequest()
+                    .body("Error deleting photo: " + errorMessage);
         }
-
-
     }
+
 
     @GetMapping("/files/{photoId}")
     public ResponseEntity<Resource> getPhotoFile(@PathVariable Long photoId) {
@@ -114,12 +139,12 @@ public class PhotoController {
     public ResponseEntity<?> uploadPhoto(
             @RequestParam("file") MultipartFile file,
             @RequestParam("eventId") Long eventId,
-            Authentication authentication) {
+            @RequestParam Long userId) {
 
         try {
             String filePath = fileStorageService.storeFile(file);
-            String username = authentication.getName();
-            User user = userRepository.findByEmail(username);
+
+            User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException("User not found"));
             if (user == null){
                 throw new RuntimeException("User not found");
             }
@@ -138,7 +163,7 @@ public class PhotoController {
 
             return ResponseEntity.status(HttpStatus.CREATED).body(photoDto);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
