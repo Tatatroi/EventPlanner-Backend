@@ -69,8 +69,10 @@ public class PhotoController {
         System.out.println("DELETE photoId = " + id + ", userId = " + userId);
 
         try {
+            System.out.println(id);
             Photo photo = photoService.getPhotoById(id);
             if (photo == null) {
+                System.out.println("IS NULL");
                 return ResponseEntity.notFound().build();
             }
 
@@ -95,6 +97,7 @@ public class PhotoController {
 
             // Delete from database first
             try {
+                System.out.println("ID ID ID ID ID " + id);
                 photoService.deletePhoto(id);
             } catch (Exception e){
                 return ResponseEntity.badRequest().body("Error comes from service");

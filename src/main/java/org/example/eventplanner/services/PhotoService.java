@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,16 @@ public class PhotoService {
     }
 
     public Photo getPhotoById(Long id) {
-        return photoRepository.findById(id).orElse(null);
+        System.out.println("ENTERED SERVICE");
+        Photo photo = photoRepository.findById(id).orElseThrow(() -> new RuntimeException("Photo not found"));
+        if (photo == null){
+            System.out.println("PHOTO WITH ID " + id + " NOT FOUND");
+        } else {
+            System.out.println("PHOTO FOUND " + photo);
+        }
+
+
+        return photo;
     }
 
     public Photo createPhoto(Photo photo) {

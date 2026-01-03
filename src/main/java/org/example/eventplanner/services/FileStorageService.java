@@ -25,7 +25,7 @@ public class FileStorageService {
     @Value("${file.max-size:5242880}")
     private long maxFileSize;
 
-    @Value("{file.allowed-extensions:jpg,jpeg,png}")
+    @Value("${file.allowed-extensions:jpg,jpeg,png}")
     private String[] allowedExtensions;
 
     public FileStorageService(FileStorageConfig config) throws IOException {

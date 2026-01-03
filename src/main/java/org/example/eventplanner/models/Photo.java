@@ -1,23 +1,32 @@
 package org.example.eventplanner.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"event", "user"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "photo")
 public class Photo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long idPhoto;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    // Removed cascade = CascadeType.ALL to prevent deleting the Event when a Photo is deleted
+    @ManyToOne
     @JoinColumn(name = "id_event")
     private Event event;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    // Removed cascade = CascadeType.ALL to prevent deleting the User when a Photo is deleted
+    @ManyToOne
     @JoinColumn(name = "id_user")
     private User user;
 

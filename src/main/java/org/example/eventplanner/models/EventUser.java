@@ -2,9 +2,15 @@ package org.example.eventplanner.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"user", "event"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @IdClass(EventUserId.class)
 @Table(name = "event_user")
@@ -12,10 +18,12 @@ public class EventUser {
 
     @Id
     @Column(name = "id_user")
+    @EqualsAndHashCode.Include
     private Long idUser;
 
     @Id
     @Column(name = "id_event")
+    @EqualsAndHashCode.Include
     private Long idEvent;
 
     @ManyToOne
