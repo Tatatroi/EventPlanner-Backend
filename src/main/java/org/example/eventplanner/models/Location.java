@@ -1,6 +1,7 @@
 package org.example.eventplanner.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.Set;
@@ -23,5 +24,6 @@ public class Location {
     private Double longitude;
 
     @OneToMany(mappedBy = "location")
+    @JsonIgnore
     private Set<Event> events;
 }
