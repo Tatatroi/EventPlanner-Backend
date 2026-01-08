@@ -1,5 +1,6 @@
 package org.example.eventplanner.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -27,5 +28,6 @@ public class Schedule {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_event")
+    @JsonIgnore
     private Event event;
 }

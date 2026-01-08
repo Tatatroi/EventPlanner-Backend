@@ -28,9 +28,11 @@ public class User {
 
     // Relație cu EventUser (N-N)
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private Set<EventUser> eventUsers;
 
     // Relație cu Photo
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private Set<Photo> photos;
 }

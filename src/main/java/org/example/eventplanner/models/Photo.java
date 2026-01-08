@@ -1,5 +1,6 @@
 package org.example.eventplanner.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +24,7 @@ public class Photo {
     // Removed cascade = CascadeType.ALL to prevent deleting the Event when a Photo is deleted
     @ManyToOne
     @JoinColumn(name = "id_event")
+    @JsonIgnore
     private Event event;
 
     // Removed cascade = CascadeType.ALL to prevent deleting the User when a Photo is deleted
