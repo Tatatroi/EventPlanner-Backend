@@ -1,14 +1,16 @@
 package org.example.eventplanner.services;
 
+import lombok.Getter;
 import org.example.eventplanner.models.User;
 import org.example.eventplanner.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
+@Getter
 @Service
 public class UserService {
+    @Getter
     private final UserRepository userRepository;
     private final EventUserService eventUserService;
 

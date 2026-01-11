@@ -1,5 +1,6 @@
 package org.example.eventplanner.services;
 
+import lombok.Getter;
 import org.example.eventplanner.models.EventUser;
 import org.example.eventplanner.models.Invitation;
 import org.example.eventplanner.repositories.EventUserRepository;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Service
 public class InvitationService {
+    @Getter
     private final InvitationRepository invitationRepository;
 
     private final EventUserRepository eventUserRepository;
@@ -59,5 +61,18 @@ public class InvitationService {
                 .orElseThrow(() -> new RuntimeException("Invitation not found"));
         eu.setStatus("declined");
         eventUserRepository.save(eu);
+    }
+
+    public void respondToInvitation(Long eventId, String email, boolean isAccepted) {
+        Invitation invitation = invitationRepository.findByEvent_IdEventAndEmail(eventId, email);
+        if (invitation == null) {
+            throw new RuntimeException("Invitation not found for email: " + email);
+        }
+        if (isAccepted) {
+            invitation.setStatus("Accepted");
+        } else {
+            invitation.setStatus("Declined");
+        }
+        invitationRepository.save(invitation);
     }
 }

@@ -2,15 +2,14 @@ package org.example.eventplanner.services;
 
 import org.example.eventplanner.dto.EventUserDto;
 import org.example.eventplanner.mappers.EventUserMapper;
-import org.example.eventplanner.models.Event;
-import org.example.eventplanner.models.EventUser;
-import org.example.eventplanner.models.EventUserId;
-import org.example.eventplanner.models.User;
+import org.example.eventplanner.models.*;
 import org.example.eventplanner.repositories.EventRepository;
 import org.example.eventplanner.repositories.EventUserRepository;
+import org.example.eventplanner.repositories.InvitationRepository;
 import org.example.eventplanner.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,18 +20,21 @@ public class EventUserService {
     private final EventUserRepository eventUserRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final InvitationRepository invitationRepository;
     private final EmailService emailService;
 
     public EventUserService(
             EventUserRepository eventUserRepository,
             EventRepository eventRepository,
             UserRepository userRepository,
-            EmailService emailService
+            EmailService emailService,
+            InvitationRepository invitationRepository
     ) {
         this.eventUserRepository = eventUserRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.invitationRepository = invitationRepository;
     }
 
     // --------------------------------------------------------------------
@@ -125,7 +127,6 @@ public class EventUserService {
 
         for (String email : emails) {
 
-            // 1. găsim user sau creăm unul nou
             User user = userRepository.findByEmail(email);
 
             if (user == null) {
@@ -134,10 +135,10 @@ public class EventUserService {
                 user.setName("Guest");
                 user.setLast_name("User");
                 user.setPassword(UUID.randomUUID().toString());
+                user.setRole("Guest");
                 user = userRepository.save(user);
             }
 
-            // 2. verificăm dacă participantul există deja
             EventUser existing = eventUserRepository
                     .findByIdUserAndIdEvent(user.getIdUser(), idEvent)
                     .orElse(null);
@@ -155,8 +156,19 @@ public class EventUserService {
                 eventUserRepository.save(eu);
             }
 
-            // 3. trimitem mail
-            emailService.sendEventInvitation(email, event.getName(), idEvent, user.getIdUser());
+            Invitation existingInv = invitationRepository.findByEvent_IdEventAndEmail(idEvent, email);
+
+            if (existingInv == null) {
+                Invitation invitation = new Invitation();
+                invitation.setEvent(event);
+                invitation.setEmail(email);
+                invitation.setStatus("Sent");
+                invitation.setSent_time(LocalDateTime.now());
+
+                invitationRepository.save(invitation);
+            }
+
+            emailService.sendEventInvitation(email, event.getName(), idEvent);
         }
     }
 }
