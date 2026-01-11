@@ -3,6 +3,9 @@ package org.example.eventplanner.services;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.example.eventplanner.models.Event;
+import org.example.eventplanner.models.Invitation;
+import org.example.eventplanner.repositories.InvitationRepository;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -29,11 +32,11 @@ public class EmailService {
         }
     }
 
-    public void sendEventInvitation(String to, String eventName, Long eventId, Long userId) {
+    public void sendEventInvitation(String to, String eventName, Long eventId) {
         String subject = "You're invited to: " + eventName;
 
-        String linkAccept = "http://localhost:8081/invitations/accept?eventId=" + eventId + "&userId=" + userId;
-        String linkDecline = "http://localhost:8081/invitations/decline?eventId=" + eventId + "&userId=" + userId;
+        String linkAccept = "http://localhost:8081/invitations/accept?eventId=" + eventId + "&email=" + to;
+        String linkDecline = "http://localhost:8081/invitations/decline?eventId=" + eventId + "&email=" + to;
 
         String html = """
         <html>
@@ -51,7 +54,6 @@ public class EmailService {
 
         sendHtmlEmail(to, subject, html);
     }
-
 
 
 }

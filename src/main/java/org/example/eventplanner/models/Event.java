@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import java.time.LocalDateTime;
 import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.beans.Transient;
 
 @Getter
 @Setter
@@ -30,6 +32,9 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime end_time;
 
+    @Column(length = 1024)
+    String description;
+
     // Relație cu Location (N:1)
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_location")
@@ -50,4 +55,18 @@ public class Event {
     // Relație cu EventUser (N:N)
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
     private Set<EventUser> eventUsers;
+
+    @jakarta.persistence.Transient
+    @JsonProperty("organizer")
+    public User getOrganizer() {
+        if (eventUsers == null) {
+            return null;
+        }
+        return eventUsers.stream()
+                .filter(eu -> "organizer".equalsIgnoreCase(eu.getRole()) || "Organizer".equalsIgnoreCase(eu.getRole()))
+                .findFirst()
+                .map(EventUser::getUser)
+                .orElse(null);
+    }
+
 }

@@ -3,6 +3,9 @@ package org.example.eventplanner.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import org.example.eventplanner.dto.LogInRequest;
+
 import java.util.Set;
 
 @Data
@@ -23,8 +26,12 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Getter
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = true)
+    private String role;
 
     // Relație cu EventUser (N-N)
     @OneToMany(mappedBy = "user")

@@ -22,17 +22,34 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest registerRequest) {
-        if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new IllegalArgumentException("Email already registered");
+        User existingUser = userRepository.findByEmail(registerRequest.getEmail());
+
+        User userToSave;
+
+        if (existingUser != null) {
+            if ("Guest".equalsIgnoreCase(existingUser.getRole())) {
+                userToSave = existingUser;
+                userToSave.setName(registerRequest.getName());
+                userToSave.setLast_name(registerRequest.getLastName());
+
+                userToSave.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+
+                userToSave.setRole("User");
+
+            } else {
+                throw new IllegalArgumentException("Email already registered");
+            }
+
+        } else {
+            userToSave = new User();
+            userToSave.setEmail(registerRequest.getEmail());
+            userToSave.setName(registerRequest.getName());
+            userToSave.setLast_name(registerRequest.getLastName());
+            userToSave.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+            userToSave.setRole("User");
         }
 
-        User user = new User();
-        user.setName(registerRequest.getName());
-        user.setLast_name(registerRequest.getLastName());
-        user.setEmail(registerRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-
-        User saved = userRepository.save(user);
+        User saved = userRepository.save(userToSave);
 
         String token = jwtUtil.generateJwtToken(saved);
 
@@ -43,9 +60,12 @@ public class AuthService {
         );
     }
 
-
     public AuthResponse login(LogInRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail());
+
+        if (user == null) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid email or password");
@@ -57,6 +77,5 @@ public class AuthService {
                 token,
                 user.getIdUser(),
                 user.getEmail());
-
     }
 }

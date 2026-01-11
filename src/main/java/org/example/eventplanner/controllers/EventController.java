@@ -3,6 +3,7 @@ package org.example.eventplanner.controllers;
 import lombok.RequiredArgsConstructor;
 import org.example.eventplanner.models.Event;
 import org.example.eventplanner.services.EventService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +38,14 @@ public class EventController {
     @DeleteMapping("/{id}")
     public void deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
+    }
+
+    // În EventController.java
+
+    @PostMapping("/{id}/notify-guests")
+    public ResponseEntity<String> sendEventUpdate(@PathVariable Long id) {
+        eventService.sendEventUpdateToGuests(id);
+        return ResponseEntity.ok("Emails sent successfully to confirmed guests.");
     }
 
 }
