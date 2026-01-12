@@ -7,9 +7,9 @@ import org.example.eventplanner.models.*;
 import org.example.eventplanner.repositories.EventRepository;
 import org.example.eventplanner.repositories.EventUserRepository;
 import org.example.eventplanner.repositories.InvitationRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,20 +18,19 @@ public class EventService {
 
     @Getter
     private final EventRepository eventRepository;
-
     private final EventUserRepository eventUserRepository;
-
     private final InvitationRepository invitationRepository;
-
     private final EmailService emailService;
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
-    public EventService(EventRepository eventRepository, EventUserRepository eventUserRepository, InvitationRepository invitationRepository, EmailService emailService, UserService userService) {
+    public EventService(EventRepository eventRepository, EventUserRepository eventUserRepository, InvitationRepository invitationRepository, EmailService emailService, UserService userService, PasswordEncoder passwordEncoder) {
         this.eventUserRepository = eventUserRepository;
         this.eventRepository = eventRepository;
         this.invitationRepository = invitationRepository;
         this.emailService = emailService;
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<Event> getAllEvents() {
@@ -60,9 +59,6 @@ public class EventService {
 
         Event savedEvent = eventRepository.save(event);
 
-        // -------------------------------------------------------------
-        // 2. SALVĂM ORGANIZATORUL PRINCIPAL
-        // -------------------------------------------------------------
         User mainUser = userService.getUserRepository().findById(mainOrganizerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -71,46 +67,53 @@ public class EventService {
         mainOrganizerLink.setEvent(savedEvent);
         mainOrganizerLink.setIdUser(mainUser.getIdUser());
         mainOrganizerLink.setIdEvent(savedEvent.getIdEvent());
-
-        mainOrganizerLink.setRole("organizer"); // <--- ROL PRINCIPAL
+        mainOrganizerLink.setRole("organizer");
         mainOrganizerLink.setConfirmed(true);
         mainOrganizerLink.setInvitation_status("accepted");
 
         eventUserRepository.save(mainOrganizerLink);
 
-        // -------------------------------------------------------------
-        // 3. SALVĂM CO-ORGANIZATORUL (Dacă există email)
-        // -------------------------------------------------------------
         String coEmail = eventDto.getCoOrganizerEmail();
 
         if (coEmail != null && !coEmail.trim().isEmpty()) {
             User coUser = userService.getUserRepository().findByEmail(coEmail);
+            boolean isNewUser = false;
+            String tempPassword = "";
+
             if (coUser == null) {
+                isNewUser = true;
                 coUser = new User();
                 coUser.setEmail(coEmail);
                 coUser.setName("Co-Organizer");
                 coUser.setLast_name("Guest");
-                coUser.setRole("Guest"); // E guest în sistem, dar Organizer la eveniment
+                coUser.setRole("Guest");
+                tempPassword = "Pass" + (int)(Math.random() * 10000);
+                coUser.setPassword(passwordEncoder.encode(tempPassword));
                 coUser = userService.getUserRepository().save(coUser);
             }
 
-            // Creăm legătura în EventUser
             EventUser coOrganizerLink = new EventUser();
             coOrganizerLink.setUser(coUser);
             coOrganizerLink.setEvent(savedEvent);
             coOrganizerLink.setIdUser(coUser.getIdUser());
             coOrganizerLink.setIdEvent(savedEvent.getIdEvent());
-
-            coOrganizerLink.setRole("organizer"); // <--- ȘI EL PRIMEȘTE ROL DE ORGANIZER
-
-            // El trebuie să accepte invitația, deci e pending
+            coOrganizerLink.setRole("organizer");
             coOrganizerLink.setConfirmed(false);
             coOrganizerLink.setInvitation_status("pending");
-
             eventUserRepository.save(coOrganizerLink);
 
-            // Opțional: Trimitem mail și lui
-            emailService.sendEventInvitation(coEmail, savedEvent.getName(), savedEvent.getIdEvent());
+            Invitation coInvitation = new Invitation();
+            coInvitation.setEvent(savedEvent);
+            coInvitation.setEmail(coEmail);
+            coInvitation.setStatus("Sent");
+            coInvitation.setSent_time(java.time.LocalDateTime.now());
+            invitationRepository.save(coInvitation);
+
+            if (isNewUser) {
+                emailService.sendAccountCreationEmail(coEmail, savedEvent.getName(), tempPassword);
+            } else {
+                emailService.sendEventInvitation(coEmail, savedEvent.getName(), savedEvent.getIdEvent());
+            }
         }
 
         return savedEvent;
@@ -144,13 +147,10 @@ public class EventService {
         eventRepository.deleteById(id);
     }
 
-
     public void sendEventUpdateToGuests(Long eventId) {
-        // 1. Găsim evenimentul
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // 2. Găsim invitații confirmați
         List<Invitation> confirmedGuests = invitationRepository.findByEvent_IdEventAndStatus(eventId, "Accepted");
 
         if (confirmedGuests.isEmpty()) {
@@ -200,13 +200,45 @@ public class EventService {
         return links.stream()
                 .map(link -> {
                     Event event = link.getEvent();
-
                     EventDto dto = EventMapper.toDTO(event);
-
                     dto.setRole(link.getRole());
-
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public void acceptInvitationByEmail(Long eventId, String email) {
+        User user = userService.getUserRepository().findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found with email: " + email);
+        }
+
+        EventUser eventUser = eventUserRepository.findByIdUser(user.getIdUser())
+                .stream()
+                .filter(eu -> eu.getIdEvent().equals(eventId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Invitation not found"));
+
+        eventUser.setInvitation_status("accepted");
+        eventUser.setConfirmed(true);
+
+        eventUserRepository.save(eventUser);
+    }
+
+    public void declineInvitationByEmail(Long eventId, String email) {
+        User user = userService.getUserRepository().findByEmail(email);
+        if (user != null) {
+            EventUser eventUser = eventUserRepository.findByIdUser(user.getIdUser())
+                    .stream()
+                    .filter(eu -> eu.getIdEvent().equals(eventId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (eventUser != null) {
+                eventUser.setInvitation_status("rejected");
+                eventUser.setConfirmed(false);
+                eventUserRepository.save(eventUser);
+            }
+        }
     }
 }

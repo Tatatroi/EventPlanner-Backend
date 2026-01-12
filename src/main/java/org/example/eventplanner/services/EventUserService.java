@@ -37,9 +37,6 @@ public class EventUserService {
         this.invitationRepository = invitationRepository;
     }
 
-    // --------------------------------------------------------------------
-    // GET ALL
-    // --------------------------------------------------------------------
     public List<EventUserDto> getAllEventUsers() {
         return eventUserRepository.findAll()
                 .stream()
@@ -47,17 +44,11 @@ public class EventUserService {
                 .toList();
     }
 
-    // --------------------------------------------------------------------
-    // GET BY IDs
-    // --------------------------------------------------------------------
     public Optional<EventUserDto> getEventUserByIds(Long eventId, Long userId) {
         EventUserId id = new EventUserId(userId, eventId);
         return eventUserRepository.findById(id).map(EventUserMapper::toDto);
     }
 
-    // --------------------------------------------------------------------
-    // ADD USER TO EVENT
-    // --------------------------------------------------------------------
     public EventUserDto addEventUser(Long userId, Long eventId) {
         EventUser eu = new EventUser();
         eu.setIdUser(userId);
@@ -69,9 +60,6 @@ public class EventUserService {
         return EventUserMapper.toDto(eventUserRepository.save(eu));
     }
 
-    // --------------------------------------------------------------------
-    // UPDATE EventUser
-    // --------------------------------------------------------------------
     public EventUserDto updateEventUser(Long userId, Long eventId, EventUser updatedEventUser) {
         EventUserId id = new EventUserId(userId, eventId);
 
@@ -89,17 +77,11 @@ public class EventUserService {
         return EventUserMapper.toDto(updated);
     }
 
-    // --------------------------------------------------------------------
-    // DELETE FROM EVENT
-    // --------------------------------------------------------------------
     public void deleteEventUser(Long userId, Long eventId) {
         EventUserId id = new EventUserId(userId, eventId);
         eventUserRepository.deleteById(id);
     }
 
-    // --------------------------------------------------------------------
-    // GET ALL USERS OF AN EVENT
-    // --------------------------------------------------------------------
     public List<EventUserDto> getAllUsersByEventId(Long eventId) {
         return eventUserRepository.findByIdEvent(eventId)
                 .stream()
@@ -107,9 +89,6 @@ public class EventUserService {
                 .toList();
     }
 
-    // --------------------------------------------------------------------
-    // GET ALL EVENTS OF A USER
-    // --------------------------------------------------------------------
     public List<EventUserDto> getAllEventsByUserId(Long userId) {
         return eventUserRepository.findByIdUser(userId)
                 .stream()
@@ -117,9 +96,6 @@ public class EventUserService {
                 .toList();
     }
 
-    // --------------------------------------------------------------------
-    // SEND INVITATIONS
-    // --------------------------------------------------------------------
     public void inviteUsersToEvent(Long idEvent, List<String> emails) {
 
         Event event = eventRepository.findById(idEvent)
@@ -170,5 +146,17 @@ public class EventUserService {
 
             emailService.sendEventInvitation(email, event.getName(), idEvent);
         }
+    }
+
+    public void confirmParticipation(Long eventId, Long userId) {
+        EventUserId id = new EventUserId(userId, eventId);
+
+        EventUser eventUser = eventUserRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User is not invited to this event"));
+
+        eventUser.setConfirmed(true);
+        eventUser.setInvitation_status("accepted");
+
+        eventUserRepository.save(eventUser);
     }
 }

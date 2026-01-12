@@ -55,5 +55,18 @@ public class EmailService {
         sendHtmlEmail(to, subject, html);
     }
 
+    public void sendAccountCreationEmail(String toEmail, String eventName, String password) {
+        String subject = "You are a Co-Organizer for " + eventName;
+        String body = "Hello,\n\n" +
+                "You have been invited to be a Co-Organizer for the event: " + eventName + ".\n" +
+                "An account has been created for you.\n\n" +
+                "Here are your login details:\n" +
+                "Email: " + toEmail + "\n" +
+                "Temporary Password: " + password + "\n\n" +
+                "Please login to manage the event.";
+
+        sendHtmlEmail(toEmail, subject, body);
+    }
+
 
 }

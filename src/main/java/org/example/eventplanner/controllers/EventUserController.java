@@ -73,4 +73,14 @@ public class EventUserController {
         eventUserService.inviteUsersToEvent(dto.getIdEvent(), dto.getEmails());
         return ResponseEntity.ok("Invitations sent succ essfully.");
     }
+
+    @PostMapping("/{eventId}/confirm")
+    public ResponseEntity<String> confirmParticipation(
+            @PathVariable Long eventId,
+            @RequestParam Long userId
+    ) {
+        eventUserService.confirmParticipation(eventId, userId);
+
+        return ResponseEntity.ok("Participation confirmed successfully!");
+    }
 }

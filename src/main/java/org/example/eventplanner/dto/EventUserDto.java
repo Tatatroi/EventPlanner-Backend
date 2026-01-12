@@ -1,10 +1,17 @@
 package org.example.eventplanner.dto;
 
-public record EventUserDto(
-        Long userId,
-        Long eventId,
-        String email,
-        String role,
-        Boolean confirmed,
-        String invitationStatus
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class EventUserDto {
+    private Long userId;
+    private Long eventId;
+    private String email;
+    private String role;
+    private Boolean confirmed;
+    private String invitationStatus;
+}
